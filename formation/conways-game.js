@@ -2,11 +2,9 @@
 '''
 Conway's Game Of Life
 
-Conway's Game of Life (see https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) 
-is a famous example of a cellular automaton devised as a thought experiment for modeling local populations and other networks.
+Conway's Game of Life (see https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) is a famous example of a cellular automaton devised as a thought experiment for modeling local populations and other networks.
 
-The game takes an initial state which is a matrix of booleans. True represents a live cell. False is dead. 
-On every turn, each cell computes it's next state based on its own state and that of its neighbors along horizontals, verticals, or diagonals. The rules are:
+The game takes an initial state which is a matrix of booleans. True represents a live cell. False is dead. On every turn, each cell computes it's next state based on its own state and that of its neighbors along horizontals, verticals, or diagonals. The rules are:
 
 - Any live cell with fewer than two live neighbors dies, as if by underpopulation.
 - Any live cell with two or three live neighbors lives on to the next generation.
@@ -42,148 +40,108 @@ conway(blinker, 2) =>
   [ ' ', ' ', ' ', ' ', ' ' ]
 ]
 
-
-
-conway =>
-[
-  [ ' ', ' ', ' ', ' ', ' ' ],
-  [ ' ', ' ', '', ' ', 'X' ],
-  [ ' ', ' ', 'X', ' ', 'X' ],
-  [ ' ', ' ', '', ' ', 'X' ],
-  [ ' ', ' ', ' ', ' ', ' ' ],
-  [ ' ', ' ', ' ', ' ', ' ' ],
-  [ ' ', 'X', ' ', ' ', ' ' ],
-  [ 'X', ' ', 'X', ' ', ' ' ]
-]
-
 Notice that this pattern cycles between horizontal and vertical orientations. Look in the the wikipedia article for more interesting and well known patterns! 
+ 
 
-
-Explore:
-no size defined
-
-Brainstrom:
-variable for count of live cells
-make copy of board
-iterate till we find live cell
-for that cell, check previous and next col for live cells
-check previous and next row for live cells
-check previous col and row, and next col and row
-record any adjacent dead cells into dead cell array for checking
-based on count, dictate cell behavior
-update board copy
-when we have reached end of matrix
-
-start from a corner
-stack.push(cornerCell)
-
-    while stack is not empty
-    marked[c] = true
-    c = stack.pop()
-  : check (h, v, d) and isNotMarked
-      stack.push(neigh) //  collect those cells to an stack
-   
-    board = nextstatus(c)
-
-[[3,3][]]
 FUNCTION SIGNATURE
 function conway(board, rounds) {
 def conway(board, rounds):
 '''
+
+Explore:
+assumption: board is valid
+rounds >= 0
+
+Brainstorm:
+Start with copy mech, alt: new symbol
+
+iterate through rounds:
+  Copy the board
+  Iterate the board:
+    check live cells:
+      find neighbors: (count)
+        check:
+          - Any live cell with fewer than two live neighbors dies, as if by underpopulation.
+          - Any live cell with two or three live neighbors lives on to the next generation.
+          - Any live cell with more than three live neighbors dies, as if by overpopulation.
+        
+          < 2 || > 3-- dead (update the copy)
+          else continue state (live)
+    check dead cell:
+      find neighbors: (count)
+        check:
+            - Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+            === 3 change to live (update the copy)
+
+board = deepcopy(copy)
+
+
+time = O(row * col * rounds)
+space = O(row * col)
+
+
 */
 
-
 function conway(board, rounds) {
-  const bLength = board.length;
-  const bWidth = board[0].length;
-
-  const copyBoard = structuredClone(board)
- 
-  let marked;
-
-
-  const dir = [
-    [0, -1],
+  const directions = [
     [0, 1],
+    [0, -1],
     [1, 0],
-    [1, -1],
+    [-1, 0],
     [-1, 1],
-    [-1, -1],
     [1, -1],
-    [1, 1]
-  ]
+    [1, 1],
+    [-1, -1],
+  ];
 
-  const checkBounds = (r, c) => {
-    return (r >= 0 && c >= 0 && r < bLength && c < bWidth)
-  }
+  const inBound = (r, c) => r >= 0 && c >= 0 && r < board.length && c < board[0].length;
 
-  const findStatus = (r, c) => {
-    let liveCells = 0;
+  // Iterating through rounds
+  for (let i = 0; i < rounds; i++) {
+    const boardCopy = structuredClone(board);
 
-    for (const [offsetRow, offsetCol] of dir) {
-      const newRow = r + offsetRow;
-      const newCol = c + offsetCol;
-      // - Any live cell with fewer than two live neighbors dies, as if by underpopulation.
-      // - Any live cell with two or three live neighbors lives on to the next generation.
-      // - Any live cell with more than three live neighbors dies, as if by overpopulation.
-      // - Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
-
-      if (checkBounds(newRow, newCol)) {
-        if (board[newRow][newCol] === 'X') {
-          liveCells++;
-        } 
-      }
-    }
-
-    if (board[r][c] === 'X') {
-      if (liveCells > 3) {
-        return ' ';
-      }
-      if (liveCells >= 2) {
-        return 'X';
-      }
-      return ' ';
-    } else {
-      if (liveCells === 3) {
-        return 'X';
-      }
-      return ' ';
-    }
-
-  }
-
-  const bfs = (r, c) => {
-    const stack = [[r, c]];
-
-    while (stack.length) {
-      const [row, col] = stack.pop();
-      marked[row][col] = true;
-      for (const [offsetRow, offsetCol] of dir) {
-        const newRow = row + offsetRow;
-        const newCol = col + offsetCol;
-
-        if (checkBounds(newRow, newCol) && !marked[newRow][newCol]) {
-          stack.push([newRow, newCol]);
+    // Visit every cell
+    for (let row = 0; row < board.length; row++) {
+      for (let col = 0; col < board[0].length; col++) {
+        //Count neighbors
+        let neighborCount = 0;
+        for (const [r, c] of directions) {
+          const nr = row + r;
+          const nc = col + c;
+          if (inBound(nr, nc) && boardCopy[nr][nc] === 'X') {
+            neighborCount++;
+          }
         }
-
-        copyBoard[row][col] = findStatus([row, col])
-
+        // Update board
+        if (boardCopy[row][col] === 'X') {
+          if (neighborCount < 2 || neighborCount > 3) {
+            board[row][col] = ' ';
+          }
+        } else {a
+          if (neighborCount === 3) {
+            board[row][col] = 'X';
+          }
+        }
       }
     }
-    console.log(copyBoard)
   }
 
-  while (rounds !== 0) {
-    marked = Array.from({ length: bLength }, () => Array.from({ length: bWidth }, () => false));
-    bfs(0, 0);
-    rounds--;
+  return board;
+}
+
+function printBoard(board) {
+  console.log(`Printing board:`)
+  for (let row of board) {
+    console.log(`\t${JSON.stringify(row)}`);
   }
 }
 
-conway([
+const blinker = [
   [" ", " ", " ", " ", " "],
   [" ", " ", "X", " ", " "],
   [" ", " ", "X", " ", " "],
   [" ", " ", "X", " ", " "],
   [" ", " ", " ", " ", " "],
-], 1)
+];
+printBoard(blinker);
+printBoard(conway(blinker, 3));
