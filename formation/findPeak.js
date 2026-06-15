@@ -31,41 +31,83 @@ special cases to check in bound -- if i - 1 < 0 or i + 1 >= alt*.length return s
 
 */
 
+// function findPeak(nums) {
+//     if (nums.length === 1) return 0;
+//     if (nums.length === 2) {
+//         return nums[0] > nums [1] ? 0 : 1;
+//     }
+
+//     const alt1 = [];
+//     const alt2 = [];
+
+//     for (let i = 0; i < nums.length; i+=2) {
+//         alt1.push(nums[i]);
+//     }
+
+//     for (let i = 1; i < nums.length; i+=2) {
+//         alt2.push(nums[i]);
+//     }
+
+
+//     for (let i = 1; i < alt1.length; i++) {
+//         const f = alt2[i - 1];
+//         const s = alt1[i];
+//         const t = i >= alt2.length ? Number.MIN_SAFE_INTEGER : alt2[i];
+
+//         if (f < s && s > t) return i;
+//     }
+
+//     for (let i = 0; i < alt2.length; i++) {
+//         const f = alt1[i];
+//         const s = alt2[i];
+//         const t = i + 1 >= alt1.length ? Number.MIN_SAFE_INTEGER : alt1[i+1];
+//         if (f < s && s > t) return i + 1;
+//     }
+// }
+
+/*
+Brainstorm:
+Binary tree
+we move int the direction of a slope, idea is it will have to end somehwre
+but what happens if there are no slope -- na
+*/
+
 function findPeak(nums) {
     if (nums.length === 1) return 0;
     if (nums.length === 2) {
-        return nums[0] > nums [1] ? 0 : 1;
-    }
-
-    const alt1 = [];
-    const alt2 = [];
-
-    for (let i = 0; i < nums.length; i+=2) {
-        alt1.push(nums[i]);
-    }
-
-    for (let i = 1; i < nums.length; i+=2) {
-        alt2.push(nums[i]);
+        return nums[0] > nums[1] ? 0 : 1;
     }
 
 
-    for (let i = 1; i < alt1.length; i++) {
-        const f = alt2[i - 1];
-        const s = alt1[i];
-        const t = i >= alt2.length ? Number.MIN_SAFE_INTEGER : alt2[i];
-        
-        if (f < s && s > t) return i;
-    }
+    let l = 0;
+    let r = nums.length - 1;
 
-    for (let i = 0; i < alt2.length; i++) {
-        const f = alt1[i];
-        const s = alt2[i];
-        const t = i + 1 >= alt1.length ? Number.MIN_SAFE_INTEGER : alt1[i+1];
-        if (f < s && s > t) return i + 1;
+    while (l < r) {
+        let m = Math.floor((l + r) / 2);
+
+        if ((nums[m - 1] < nums[m] || l === m) && (nums[m] > nums[m + 1] || m + 1 === r)) {
+            if (nums[m] < nums[m + 1] && m + 1 === r) {
+                return r;
+            }
+            return m;
+        }
+
+        if (nums[m] < nums[m + 1]) {
+            l = m;
+        } else if (nums[m - 1] > nums[m]) {
+            r = m;
+        }
     }
 }
 
 console.log(findPeak([1,2,1,3,5,6,4]), '1 or 5')
+console.log(findPeak([1,5,4,3,2,1,0]), '1')
+
+console.log(findPeak([1,2,1,3,5,6,7]), '6')
+console.log(findPeak([7, 5, 4, 3, 2, 1, 0]), '0')
+
+
+
 console.log(findPeak([1,2]), '1')
 console.log(findPeak([1]), '0')
 console.log(findPeak([2,1]), '0')
